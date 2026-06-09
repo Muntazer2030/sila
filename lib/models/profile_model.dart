@@ -1,9 +1,9 @@
-// profile_model.dart
+// lib/models/profile_model.dart
 
 class ProfileModel {
   String id;
   String name;
-  String entityType; // شخص / مؤسسة / الخ
+  String entityType;
   String mainCategory;
   String subCategory;
   String governorate;
@@ -12,7 +12,6 @@ class ProfileModel {
   String importance;
   String dataSource;
   
-  // Contact
   String primaryPhone;
   String secondaryPhone;
   String email;
@@ -22,20 +21,17 @@ class ProfileModel {
   String preferredContactMethod;
   String contactNotes;
 
-  // Social
   String facebookUrl;
   String tiktokUrl;
   String instagramUrl;
   String twitterUrl;
-  String linkedinUrl;
   String youtubeUrl;
-  String telegramUrl;
   String snapchatUrl;
-
+  String telegramUrl;
+  String linkedinUrl;
   bool isVerified;
   String followersCount;
 
-  // Audience
   String audienceType;
   String ageGroup;
   String interactionLevel;
@@ -62,6 +58,11 @@ class ProfileModel {
     required this.facebookUrl,
     required this.tiktokUrl,
     required this.instagramUrl,
+    required this.twitterUrl,
+    required this.youtubeUrl,
+    required this.snapchatUrl,
+    required this.telegramUrl,
+    required this.linkedinUrl,
     required this.isVerified,
     required this.followersCount,
     required this.audienceType,
@@ -69,35 +70,89 @@ class ProfileModel {
     required this.interactionLevel,
   });
 
-  // Mock Data for testing
-  static ProfileModel getMockData() {
+  // Convert ProfileModel to a Map for SQLite
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'entityType': entityType,
+      'mainCategory': mainCategory,
+      'subCategory': subCategory,
+      'governorate': governorate,
+      'region': region,
+      'status': status,
+      'importance': importance,
+      'dataSource': dataSource,
+      'primaryPhone': primaryPhone,
+      'secondaryPhone': secondaryPhone,
+      'email': email,
+      'website': website,
+      'contactPerson': contactPerson,
+      'bestContactTime': bestContactTime,
+      'preferredContactMethod': preferredContactMethod,
+      'contactNotes': contactNotes,
+      'facebookUrl': facebookUrl,
+      'tiktokUrl': tiktokUrl,
+      'instagramUrl': instagramUrl,
+      'twitterUrl': twitterUrl,
+      'youtubeUrl': youtubeUrl,
+      'snapchatUrl': snapchatUrl,
+      'telegramUrl': telegramUrl,
+      'linkedinUrl': linkedinUrl,
+      'isVerified': isVerified ? 1 : 0, // SQLite stores bools as 0 or 1
+      'followersCount': followersCount,
+      'audienceType': audienceType,
+      'ageGroup': ageGroup,
+      'interactionLevel': interactionLevel,
+    };
+  }
+
+  // Create a ProfileModel from SQLite Map
+  factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
-      id: "101",
-      name: "محمد مهدي",
-      entityType: "شخص",
-      mainCategory: "حكومي",
-      subCategory: "مقدم أخبار",
-      governorate: "بغداد",
-      region: "الجادرية",
-      status: "فعال",
-      importance: "عالية",
-      dataSource: "محمد",
-      primaryPhone: "0772925169",
-      secondaryPhone: "07729251691",
-      email: "mohammadmahdi@gmail.com",
-      website: "www.mohammed.iq",
-      contactPerson: "مريم",
-      bestContactTime: "4:00 PM",
-      preferredContactMethod: "اتصال هاتفي",
-      contactNotes: "يمشي بلغة الفلوس واحجي وياه بالفلوس اول شي",
-      facebookUrl: "facebook.com/mohammed",
-      tiktokUrl: "tiktok.com/@mohammed",
-      instagramUrl: "instagram.com/mohammed",
-      isVerified: true,
-      followersCount: "1.2M",
-      audienceType: "بنات",
-      ageGroup: "18-24",
-      interactionLevel: "عالي",
+      id: map['id'],
+      name: map['name'],
+      entityType: map['entityType'],
+      mainCategory: map['mainCategory'],
+      subCategory: map['subCategory'],
+      governorate: map['governorate'],
+      region: map['region'],
+      status: map['status'],
+      importance: map['importance'],
+      dataSource: map['dataSource'],
+      primaryPhone: map['primaryPhone'],
+      secondaryPhone: map['secondaryPhone'],
+      email: map['email'],
+      website: map['website'],
+      contactPerson: map['contactPerson'],
+      bestContactTime: map['bestContactTime'],
+      preferredContactMethod: map['preferredContactMethod'],
+      contactNotes: map['contactNotes'],
+      facebookUrl: map['facebookUrl'],
+      tiktokUrl: map['tiktokUrl'],
+      instagramUrl: map['instagramUrl'],
+      twitterUrl: map['twitterUrl'],
+      youtubeUrl: map['youtubeUrl'],
+      snapchatUrl: map['snapchatUrl'],
+      telegramUrl: map['telegramUrl'],
+      linkedinUrl: map['linkedinUrl'],
+      isVerified: map['isVerified'] == 1,
+      followersCount: map['followersCount'],
+      audienceType: map['audienceType'],
+      ageGroup: map['ageGroup'],
+      interactionLevel: map['interactionLevel'],
+    );
+  }
+
+  static ProfileModel empty() {
+    return ProfileModel(
+      id: "", name: "", entityType: "شخص", mainCategory: "حكومي", subCategory: "أخرى",
+      governorate: "بغداد", region: "", status: "فعال", importance: "عالية", dataSource: "",
+      primaryPhone: "", secondaryPhone: "", email: "", website: "", contactPerson: "",
+      bestContactTime: "", preferredContactMethod: "اتصال هاتفي", contactNotes: "",
+      facebookUrl: "", tiktokUrl: "", instagramUrl: "", twitterUrl: "", youtubeUrl: "",
+      snapchatUrl: "", telegramUrl: "", linkedinUrl: "", isVerified: false, followersCount: "",
+      audienceType: "", ageGroup: "18-24", interactionLevel: "متوسط",
     );
   }
 }

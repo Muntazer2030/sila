@@ -1,6 +1,9 @@
-import 'package:sila/const/colors.dart';
+// lib/ui/screens/home_screen/pages/sub_page.dart
 import 'package:flutter/material.dart';
-import 'package:sila/models/app_data.dart';
+import 'package:sila/const/colors.dart';
+import 'package:sila/models/profile_model.dart';
+import 'package:sila/data/database_helper.dart';
+import 'package:sila/ui/screens/profile_screen/profile_edit_screen.dart'; // Adjust path if needed
 import 'package:sila/ui/widgets/cool_widgets.dart';
 import 'package:sila/ui/widgets/statistics_widgets.dart';
 
@@ -15,92 +18,130 @@ class SubPage extends StatefulWidget {
 
 class _SubPageState extends State<SubPage> {
   List<int> selectedIndex = [];
+  List<ProfileModel> allProfiles = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void didUpdateWidget(covariant SubPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.category['name'] != widget.category['name']) {
+      selectedIndex.clear(); // Reset filters on category change
+      _loadData();
+    }
+  }
+
+  Future<void> _loadData() async {
+    setState(() => isLoading = true);
+    // Fetch profiles belonging to this specific Main Category
+    final data = await DatabaseHelper.instance.getProfilesByCategory(widget.category['name']);
+    setState(() {
+      allProfiles = data;
+      isLoading = false;
+    });
+  }
+
+  // Calculate dynamic count for the Statistics Cards
+  int _getSubcategoryCount(String subCatName) {
+    return allProfiles.where((p) => p.subCategory == subCatName).length;
+  }
+
+  // Filter profiles based on selected Statistics Cards
+  List<ProfileModel> get _gridFilteredProfiles {
+    if (selectedIndex.isEmpty) return allProfiles; // If none selected, show all
+
+    // Extract names of the selected subcategories
+    List<String> activeSubcategories = selectedIndex.map((idx) {
+      return widget.category["subcategories"][idx]["name"] as String;
+    }).toList();
+
+    return allProfiles.where((p) => activeSubcategories.contains(p.subCategory)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          // 1. FIXED HEADER (Remains at the top while the rest scrolls)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-            color: Colors.white,
-            child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: c2,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(widget.category['icon'], color: white, size: 40),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.category['name'],
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: black,
-                              fontSize: 24,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "الرئيسية / ${widget.category['name']} / ",
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(color: black, fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 2. THE SCROLLING DASHBOARD AREA
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Container(
+    return Column(
+      children: [
+        // 1. FIXED HEADER
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+          color: Colors.white,
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  color: c2,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-
-                // THE MASTER SCROLLER: This ListView controls the whole page
-                child: ListView(
-                  padding: const EdgeInsets.all(10),
+                child: Icon(widget.category['icon'], color: Colors.white, size: 40),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- SECTION 1: YOUR GRID ---
-                    GridView.builder(
-                      shrinkWrap:
-                          true, // CRITICAL: Forces grid to calculate its height
-                      physics:
-                          const NeverScrollableScrollPhysics(), // CRITICAL: Passes scrolling to parent
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 6,
-                            childAspectRatio: 2.5,
+                    Text(
+                      widget.category['name'],
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 24,
                           ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "الرئيسية / ${widget.category['name']} / ",
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: Colors.black, fontSize: 14,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 2. SCROLLING DASHBOARD
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: ListView(
+                padding: const EdgeInsets.all(10),
+                children: [
+                  // SECTION 1: STATISTICS GRID (Acting as a Filter)
+                  if (widget.category["subcategories"] != null)
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 6,
+                        childAspectRatio: 2.5,
+                        crossAxisSpacing: 5,
+                        mainAxisSpacing: 5,
+                      ),
                       itemCount: widget.category["subcategories"].length,
                       itemBuilder: (context, index) {
+                        String subCatName = widget.category["subcategories"][index]["name"];
+                        int dynamicCount = _getSubcategoryCount(subCatName); // Fetch actual count from DB
+
                         return StatisticsCard(
                           iconColor: index % 2 == 0 ? c2 : c1,
-                          title:
-                              widget.category["subcategories"][index]["name"],
+                          title: subCatName,
                           icon: widget.category["subcategories"][index]["icon"],
-                          count:
-                              widget.category["subcategories"][index]["count"],
+                          count: dynamicCount, 
                           isSelected: selectedIndex.contains(index),
                           action: () {
                             setState(() {
@@ -115,86 +156,99 @@ class _SubPageState extends State<SubPage> {
                       },
                     ),
 
-                    const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                    // --- SECTION 2: YOUR NEW LIST VIEW ---
-                    ContactsTableView(),
-                  ],
-                ),
+                  // SECTION 2: TABLE VIEW
+                  isLoading
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40.0),
+                            child: CircularProgressIndicator(color: c2),
+                          ),
+                        )
+                      : ContactsTableView(
+                          profiles: _gridFilteredProfiles, // Pass the Grid-filtered data down
+                          categoryName: widget.category['name'],
+                          onRefresh: _loadData,
+                        ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
+// =========================================================================
+// TABLE VIEW COMPONENT (Handles Search, Dropdowns, and Delete Warning)
+// =========================================================================
+
 class ContactsTableView extends StatefulWidget {
-  const ContactsTableView({super.key});
+  final List<ProfileModel> profiles;
+  final String categoryName;
+  final VoidCallback onRefresh;
+
+  const ContactsTableView({
+    super.key,
+    required this.profiles,
+    required this.categoryName,
+    required this.onRefresh,
+  });
 
   @override
   State<ContactsTableView> createState() => _ContactsTableViewState();
 }
 
 class _ContactsTableViewState extends State<ContactsTableView> {
-  // Flex values determine column widths. They MUST be identical for Header and Data rows.
   final Map<String, int> columnFlex = {
     'checkbox': 1,
-    'name': 6,
-    'category': 4,
-    'gov': 3,
-    'phone': 4,
-    'rating': 4,
-    'date': 3,
-    'status': 3,
-    'actions': 4,
+    'name': 5,
+    'category': 3,
+    'gov': 2,
+    'phone': 3,
+    'status': 2,
+    'actions': 3,
   };
 
-  // Dummy data based on your screenshot
-  final List<ContactModel> mockData = [
-    ContactModel(
-      name: "أ. أحمد الزبيدي",
-      role: "إعلامي",
-      category: "إعلاميون",
-      categoryColor: Colors.blueAccent,
-      governorate: "بغداد",
-      phone: "0770 123 4567",
-      rating: 4.8,
-      lastContactDate: "2024-05-26",
-      status: "نشط",
-      statusColor: Colors.green,
-    ),
-    ContactModel(
-      name: "مؤسسة الإبداع الخيرية",
-      role: "مؤسسة خيرية",
-      category: "مؤسسات خيرية",
-      categoryColor: Colors.redAccent,
-      governorate: "البصرة",
-      phone: "0780 987 6543",
-      rating: 4.6,
-      lastContactDate: "2024-05-25",
-      status: "نشط",
-      statusColor: Colors.green,
-      fallbackIcon: Icons.people,
-    ),
-    ContactModel(
-      name: "قناة الرؤيا الفضائية",
-      role: "وسيلة إعلامية",
-      category: "وسائل إعلامية",
-      categoryColor: Colors.redAccent,
-      governorate: "بغداد",
-      phone: "0773 888 9999",
-      rating: 4.4,
-      lastContactDate: "2024-05-21",
-      status: "يحتاج متابعة",
-      statusColor: Colors.orange,
-      fallbackIcon: Icons.tv,
-    ),
-  ];
+  // Local Filter States
+  String searchQuery = "";
+  String selectedSubCategory = "جميع الفئات";
+  String selectedGovernorate = "جميع المحافظات";
+
+  // Text Controller for Search Bar
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Calculate final displayed profiles after local search/dropdowns
+  List<ProfileModel> get _finalDisplayedProfiles {
+    return widget.profiles.where((p) {
+      // 1. Search Query Match
+      bool matchesSearch = searchQuery.isEmpty ||
+          p.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          p.primaryPhone.contains(searchQuery) ||
+          p.subCategory.toLowerCase().contains(searchQuery.toLowerCase());
+
+      // 2. Subcategory Match
+      bool matchesCat = selectedSubCategory == "جميع الفئات" || p.subCategory == selectedSubCategory;
+
+      // 3. Governorate Match
+      bool matchesGov = selectedGovernorate == "جميع المحافظات" || p.governorate == selectedGovernorate;
+
+      return matchesSearch && matchesCat && matchesGov;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<ProfileModel> displayedData = _finalDisplayedProfiles;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -205,38 +259,29 @@ class _ContactsTableViewState extends State<ContactsTableView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. TOOLBAR / ACTION BAR
           _buildToolbar(),
-
           const Divider(height: 1, color: Colors.black12),
-
-          // 2. THE TABLE AREA
-          // THE FIX: LayoutBuilder checks the available screen space.
           LayoutBuilder(
             builder: (context, constraints) {
-              // If the screen is wider than 1200, take the full screen width.
-              // If it's smaller, lock the width to 1200 so it can scroll horizontally without crashing.
-              final double tableWidth = constraints.maxWidth > 1200
-                  ? constraints.maxWidth
-                  : 1200;
-
+              final double tableWidth = constraints.maxWidth > 1000 ? constraints.maxWidth : 1000;
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                // THE FIX: SizedBox provides the bounded width required for Expanded widgets to work!
                 child: SizedBox(
                   width: tableWidth,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Table Header
                       _buildTableHeader(),
                       const Divider(height: 1, color: Colors.black12),
-
-                      // Table Rows
-                      ...mockData.map(
-                        (contact) => Column(
+                      if (displayedData.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(40.0),
+                          child: Center(child: Text("لا توجد بيانات تطابق الفلتر أو البحث")),
+                        ),
+                      ...displayedData.map(
+                        (profile) => Column(
                           children: [
-                            _buildTableRow(contact),
+                            _buildTableRow(profile),
                             const Divider(height: 1, color: Colors.black12),
                           ],
                         ),
@@ -252,23 +297,34 @@ class _ContactsTableViewState extends State<ContactsTableView> {
     );
   }
 
-  // --- WIDGET BUILDERS ---
-
   Widget _buildToolbar() {
+    // Dynamically extract unique categories and governorates from available data
+    List<String> availableCategories = ["جميع الفئات", ...widget.profiles.map((e) => e.subCategory).toSet()];
+    List<String> availableGovs = ["جميع المحافظات", ...widget.profiles.map((e) => e.governorate).toSet()];
+
+    // Safety checks to ensure selected values exist in the dynamic lists
+    if (!availableCategories.contains(selectedSubCategory)) selectedSubCategory = "جميع الفئات";
+    if (!availableGovs.contains(selectedGovernorate)) selectedGovernorate = "جميع المحافظات";
+
     return Padding(
       padding: const EdgeInsets.all(15.0),
       child: Wrap(
         runSpacing: 10,
         spacing: 10,
         crossAxisAlignment: WrapCrossAlignment.center,
-
         children: [
-          // Search Bar
+          // Dynamic Search Bar
           SizedBox(
             width: 250,
             child: TextField(
+              controller: _searchController,
+              onChanged: (val) {
+                setState(() {
+                  searchQuery = val;
+                });
+              },
               decoration: InputDecoration(
-                hintText: "بحث بالاسم او الهاتف او اي كلمة...",
+                hintText: "بحث بالاسم أو الهاتف...",
                 hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 15),
@@ -279,32 +335,61 @@ class _ContactsTableViewState extends State<ContactsTableView> {
               ),
             ),
           ),
-          _buildDropdownButton("جميع الفئات"),
-          _buildDropdownButton("جميع المحافظات"),
-
-          _buildOutlinedButton("استيراد من إكسل", Icons.download_outlined),
-          _buildOutlinedButton("تصدير الى إكسل", Icons.upload_outlined),
-
+          
+          // Actual working Dropdowns
+          _buildRealDropdown(selectedSubCategory, availableCategories, (val) {
+            setState(() => selectedSubCategory = val!);
+          }),
+          
+          _buildRealDropdown(selectedGovernorate, availableGovs, (val) {
+            setState(() => selectedGovernorate = val!);
+          }),
+          
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () async {
+              ProfileModel newProfile = ProfileModel.empty();
+              newProfile.mainCategory = widget.categoryName; 
+              
+              bool? added = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileEditScreen(initialData: newProfile, isEditMode: false)),
+              );
+              
+              if (added == true) widget.onRefresh(); 
+            },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF912441), // The dark maroon color
+              backgroundColor: const Color(0xFF912441),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             icon: const Icon(Icons.add, size: 18),
-            label: Padding(
-              padding: const EdgeInsets.all(6.0),
-              child: const Text(
-                "إضافة شخص جديد",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-            ),
+            label: const Text("إضافة سجل جديد", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
+      ),
+    );
+  }
+
+  // A functional dropdown widget
+  Widget _buildRealDropdown(String currentValue, List<String> items, Function(String?) onChanged) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentValue,
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
+          items: items.map((e) => DropdownMenuItem(
+            value: e, 
+            child: Text(e, style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey.shade700, fontSize: 13))
+          )).toList(),
+          onChanged: onChanged,
+        ),
       ),
     );
   }
@@ -314,150 +399,81 @@ class _ContactsTableViewState extends State<ContactsTableView> {
       padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 10),
       child: Row(
         children: [
-          Expanded(
-            flex: columnFlex['checkbox']!,
-            child: const Icon(
-              Icons.check_box_outline_blank,
-              color: Colors.grey,
-            ),
-          ),
+          Expanded(flex: columnFlex['checkbox']!, child: const Icon(Icons.check_box_outline_blank, color: Colors.grey)),
           Expanded(flex: columnFlex['name']!, child: _headerText("الاسم")),
-          Expanded(flex: columnFlex['category']!, child: _headerText("الفئة")),
+          Expanded(flex: columnFlex['category']!, child: _headerText("التخصص/الفئة")),
           Expanded(flex: columnFlex['gov']!, child: _headerText("المحافظة")),
-          Expanded(
-            flex: columnFlex['phone']!,
-            child: _headerText("رقم الهاتف"),
-          ),
-          Expanded(
-            flex: columnFlex['rating']!,
-            child: _headerText("التقييم العام"),
-          ),
-          Expanded(flex: columnFlex['date']!, child: _headerText("آخر تواصل")),
+          Expanded(flex: columnFlex['phone']!, child: _headerText("رقم الهاتف")),
           Expanded(flex: columnFlex['status']!, child: _headerText("الحالة")),
-          Expanded(
-            flex: columnFlex['actions']!,
-            child: _headerText("الإجراءات"),
-          ),
+          Expanded(flex: columnFlex['actions']!, child: _headerText("الإجراءات")),
         ],
       ),
     );
   }
 
-  Widget _buildTableRow(ContactModel data) {
+  Widget _buildTableRow(ProfileModel profile) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
       child: Row(
         children: [
-          // 1. Checkbox
-          Expanded(
-            flex: columnFlex['checkbox']!,
-            child: const Icon(
-              Icons.check_box_outline_blank,
-              color: Colors.grey,
-            ),
-          ),
-
-          // 2. Avatar & Name
+          Expanded(flex: columnFlex['checkbox']!, child: const Icon(Icons.check_box_outline_blank, color: Colors.grey)),
           Expanded(
             flex: columnFlex['name']!,
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.blueGrey.shade800,
-                  child: data.fallbackIcon != null
-                      ? Icon(data.fallbackIcon, color: Colors.white, size: 20)
-                      : const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        ), // Use NetworkImage(data.avatarUrl) in real app
+                  backgroundColor: c2.withValues(alpha: 0.1),
+                  child: const Icon(Icons.person, color: c2, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        data.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        data.role,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
+                      Text(profile.name.isEmpty ? 'بدون اسم' : profile.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(profile.entityType, style: const TextStyle(color: Colors.grey, fontSize: 12)),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-
-          // 3. Category
           Expanded(
             flex: columnFlex['category']!,
             child: Align(
               alignment: Alignment.centerRight,
-              child: StatusChip(text: data.category, color: data.categoryColor),
+              child: StatusChip(text: profile.subCategory, color: Colors.blueAccent),
             ),
           ),
-
-          // 4. Governorate
-          Expanded(
-            flex: columnFlex['gov']!,
-            child: Text(data.governorate, style: const TextStyle(fontSize: 13)),
-          ),
-
-          // 5. Phone
-          Expanded(
-            flex: columnFlex['phone']!,
-            child: Text(
-              data.phone,
-              style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-            ),
-          ),
-
-          // 6. Rating
-          Expanded(
-            flex: columnFlex['rating']!,
-            child: StarRating(rating: data.rating),
-          ),
-
-          // 7. Last Contact Date
-          Expanded(
-            flex: columnFlex['date']!,
-            child: Text(
-              data.lastContactDate,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
-
-          // 8. Status
+          Expanded(flex: columnFlex['gov']!, child: Text(profile.governorate, style: const TextStyle(fontSize: 13))),
+          Expanded(flex: columnFlex['phone']!, child: Text(profile.primaryPhone.isEmpty ? 'لا يوجد' : profile.primaryPhone, style: const TextStyle(fontSize: 13))),
           Expanded(
             flex: columnFlex['status']!,
             child: Align(
               alignment: Alignment.centerRight,
-              child: StatusChip(text: data.status, color: data.statusColor),
+              child: StatusChip(
+                text: profile.status,
+                color: profile.status == 'فعال' ? Colors.green : Colors.orange,
+              ),
             ),
           ),
-
-          // 9. Actions
           Expanded(
             flex: columnFlex['actions']!,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _actionIcon(Icons.visibility_outlined, Colors.blueGrey),
-                _actionIcon(Icons.phone_outlined, Colors.blueGrey),
-                _actionIcon(Icons.edit_outlined, Colors.blueGrey),
-                _actionIcon(Icons.more_vert, Colors.blueGrey),
+                _actionIcon(Icons.edit_outlined, Colors.blueGrey, () async {
+                  bool? updated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfileEditScreen(initialData: profile, isEditMode: true)),
+                  );
+                  if (updated == true) widget.onRefresh(); 
+                }),
+                
+                // --- Updated Delete Button with Warning Dialog ---
+                _actionIcon(Icons.delete_outline, Colors.redAccent, () {
+                  _showDeleteWarning(profile);
+                }),
               ],
             ),
           ),
@@ -466,68 +482,62 @@ class _ContactsTableViewState extends State<ContactsTableView> {
     );
   }
 
-  // --- UTILITY WIDGETS ---
-
-  Widget _headerText(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-        fontSize: 14,
-      ),
-    );
-  }
-
-  Widget _actionIcon(IconData icon, Color color) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: Icon(icon, size: 18, color: color),
-      ),
-    );
-  }
-
-  Widget _buildOutlinedButton(String label, IconData icon) {
-    return OutlinedButton.icon(
-      onPressed: () {},
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.grey.shade700,
-        side: BorderSide(color: Colors.grey.shade300),
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      icon: Icon(icon, size: 18),
-      label: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-      ),
-    );
-  }
-
-  Widget _buildDropdownButton(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
+  // --- DELETE WARNING DIALOG ---
+  void _showDeleteWarning(ProfileModel profile) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                SizedBox(width: 10),
+                Text("تأكيد الحذف", style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
             ),
+            content: Text("هل أنت متأكد من حذف السجل '${profile.name}'؟\nلا يمكن التراجع عن هذا الإجراء."),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("إلغاء", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                ),
+                onPressed: () async {
+                  Navigator.pop(ctx); // Close dialog
+                  await DatabaseHelper.instance.deleteProfile(profile.id); // Delete from DB
+                  widget.onRefresh(); // Refresh table and grids
+                  
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("تم الحذف بنجاح"), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                },
+                child: const Text("نعم، احذف", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  Widget _headerText(String title) => Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 14));
+  
+  Widget _actionIcon(IconData icon, Color color, VoidCallback onTap) => InkWell(
+    onTap: onTap, 
+    borderRadius: BorderRadius.circular(20), 
+    child: Padding(
+      padding: const EdgeInsets.all(6.0), 
+      child: Icon(icon, size: 18, color: color)
+    )
+  );
 }
