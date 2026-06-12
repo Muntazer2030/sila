@@ -1,4 +1,3 @@
-
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:sila/models/profile_model.dart';
@@ -19,7 +18,27 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
+  }
+
+  // Handle adding new columns to existing database
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        "ALTER TABLE profiles ADD COLUMN rating REAL DEFAULT 4.0;",
+      );
+      await db.execute(
+        "ALTER TABLE profiles ADD COLUMN createdAt TEXT DEFAULT '';",
+      );
+      await db.execute(
+        "ALTER TABLE profiles ADD COLUMN updatedAt TEXT DEFAULT '';",
+      );
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -56,7 +75,8 @@ class DatabaseHelper {
         followersCount TEXT,
         audienceType TEXT,
         ageGroup TEXT,
-        interactionLevel TEXT
+        interactionLevel TEXT,
+        cooperationCount TEXT
       )
     ''');
   }

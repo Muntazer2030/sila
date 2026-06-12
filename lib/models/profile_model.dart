@@ -11,7 +11,7 @@ class ProfileModel {
   String status;
   String importance;
   String dataSource;
-  
+
   String primaryPhone;
   String secondaryPhone;
   String email;
@@ -35,6 +35,12 @@ class ProfileModel {
   String audienceType;
   String ageGroup;
   String interactionLevel;
+
+  String cooperationCount;
+
+  double rating;
+  String createdAt;
+  String updatedAt;
 
   ProfileModel({
     required this.id,
@@ -68,6 +74,10 @@ class ProfileModel {
     required this.audienceType,
     required this.ageGroup,
     required this.interactionLevel,
+    required this.cooperationCount,
+    required this.rating,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   // Convert ProfileModel to a Map for SQLite
@@ -104,55 +114,91 @@ class ProfileModel {
       'audienceType': audienceType,
       'ageGroup': ageGroup,
       'interactionLevel': interactionLevel,
+      'rating': rating,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 
   // Create a ProfileModel from SQLite Map
   factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
-      id: map['id'],
-      name: map['name'],
-      entityType: map['entityType'],
-      mainCategory: map['mainCategory'],
-      subCategory: map['subCategory'],
-      governorate: map['governorate'],
-      region: map['region'],
-      status: map['status'],
-      importance: map['importance'],
-      dataSource: map['dataSource'],
-      primaryPhone: map['primaryPhone'],
-      secondaryPhone: map['secondaryPhone'],
-      email: map['email'],
-      website: map['website'],
-      contactPerson: map['contactPerson'],
-      bestContactTime: map['bestContactTime'],
-      preferredContactMethod: map['preferredContactMethod'],
-      contactNotes: map['contactNotes'],
-      facebookUrl: map['facebookUrl'],
-      tiktokUrl: map['tiktokUrl'],
-      instagramUrl: map['instagramUrl'],
-      twitterUrl: map['twitterUrl'],
-      youtubeUrl: map['youtubeUrl'],
-      snapchatUrl: map['snapchatUrl'],
-      telegramUrl: map['telegramUrl'],
-      linkedinUrl: map['linkedinUrl'],
+      id: map['id'] ?? "",
+      name: map['name'] ?? "",
+      entityType: map['entityType'] ?? "",
+      mainCategory: map['mainCategory'] ?? "",
+      subCategory: map['subCategory'] ?? "",
+      governorate: map['governorate'] ?? "",
+      region: map['region'] ?? "",
+      status: map['status'] ?? "",
+      importance: map['importance'] ?? "",
+      dataSource: map['dataSource'] ?? "",
+      primaryPhone: map['primaryPhone'] ?? "",
+      secondaryPhone: map['secondaryPhone'] ?? "",
+      email: map['email'] ?? "",
+      website: map['website'] ?? "",
+      contactPerson: map['contactPerson'] ?? "",
+      bestContactTime: map['bestContactTime'] ?? "",
+      preferredContactMethod: map['preferredContactMethod'] ?? "",
+      contactNotes: map['contactNotes'] ?? "",
+      facebookUrl: map['facebookUrl'] ?? "",
+      tiktokUrl: map['tiktokUrl'] ?? "",
+      instagramUrl: map['instagramUrl'] ?? "",
+      twitterUrl: map['twitterUrl'] ?? "",
+      youtubeUrl: map['youtubeUrl'] ?? "",
+      snapchatUrl: map['snapchatUrl'] ?? "",
+      telegramUrl: map['telegramUrl'] ?? "",
+      linkedinUrl: map['linkedinUrl'] ?? "",
       isVerified: map['isVerified'] == 1,
-      followersCount: map['followersCount'],
-      audienceType: map['audienceType'],
-      ageGroup: map['ageGroup'],
-      interactionLevel: map['interactionLevel'],
+      followersCount: map['followersCount'] ?? "",
+      audienceType: map['audienceType'] ?? "",
+      ageGroup: map['ageGroup'] ?? "",
+      interactionLevel: map['interactionLevel'] ?? "",
+      cooperationCount: map['cooperationCount'] ?? "",
+      rating: map['rating'] != null ? (map['rating'] as num).toDouble() : 4.0,
+      createdAt: map['createdAt'] ?? "",
+      updatedAt: map['updatedAt'] ?? "",
     );
   }
 
   static ProfileModel empty() {
+    String today = DateTime.now().toIso8601String().split('T')[0];
     return ProfileModel(
-      id: "", name: "", entityType: "شخص", mainCategory: "حكومي", subCategory: "أخرى",
-      governorate: "بغداد", region: "", status: "فعال", importance: "عالية", dataSource: "",
-      primaryPhone: "", secondaryPhone: "", email: "", website: "", contactPerson: "",
-      bestContactTime: "", preferredContactMethod: "اتصال هاتفي", contactNotes: "",
-      facebookUrl: "", tiktokUrl: "", instagramUrl: "", twitterUrl: "", youtubeUrl: "",
-      snapchatUrl: "", telegramUrl: "", linkedinUrl: "", isVerified: false, followersCount: "",
-      audienceType: "", ageGroup: "18-24", interactionLevel: "متوسط",
+      id: "",
+      name: "",
+      entityType: "شخص",
+      mainCategory: "حكومي",
+      subCategory: "أخرى",
+      governorate: "بغداد",
+      region: "",
+      status: "فعال",
+      importance: "عالية",
+      dataSource: "",
+      primaryPhone: "",
+      secondaryPhone: "",
+      email: "",
+      website: "",
+      contactPerson: "",
+      bestContactTime: "",
+      preferredContactMethod: "اتصال هاتفي",
+      contactNotes: "",
+      facebookUrl: "",
+      tiktokUrl: "",
+      instagramUrl: "",
+      twitterUrl: "",
+      youtubeUrl: "",
+      snapchatUrl: "",
+      telegramUrl: "",
+      linkedinUrl: "",
+      isVerified: false,
+      followersCount: "",
+      audienceType: "",
+      ageGroup: "18-24",
+      interactionLevel: "متوسط",
+      cooperationCount: "",
+      rating: 4.0,
+      createdAt: today,
+      updatedAt: today,
     );
   }
 }

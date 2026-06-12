@@ -106,7 +106,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (context) {
                             switch (selectedIndex) {
                               case 0:
-                                return MainPage(appData: appData);
+                                return MainPage(
+                                  appData: appData,
+                                  onNavigate: (int index) {
+                                    setState(() {
+                                      selectedIndex = index;
+                                    });
+                                  },
+                                );
                               case 1:
                                 return SubPage(category: appData.categories[1]);
                               case 2:
