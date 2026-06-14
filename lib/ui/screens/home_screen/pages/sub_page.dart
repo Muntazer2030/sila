@@ -681,8 +681,10 @@ class _ContactsTableViewState extends State<ContactsTableView> {
               padding: const EdgeInsets.all(6.0),
               child: const Text(
                 "إضافة سجل جديد",
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -776,135 +778,149 @@ class _ContactsTableViewState extends State<ContactsTableView> {
   Widget _buildTableRow(ProfileModel profile) {
     bool isSelected = selectedIds.contains(profile.id);
 
-    return Container(
-      color: isSelected ? c2.withValues(alpha: 0.05) : Colors.transparent,
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
-      child: Row(
-        children: [
-          Expanded(
-            flex: columnFlex['checkbox']!,
-            child: Checkbox(
-              value: isSelected,
-              activeColor: c2,
-              onChanged: (val) {
-                setState(() {
-                  if (val == true) {
-                    selectedIds.add(profile.id);
-                  } else {
-                    selectedIds.remove(profile.id);
-                  }
-                });
-              },
-            ),
+    return GestureDetector(
+      onTap: () async {
+        bool? updated = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ProfileEditScreen(initialData: profile, isEditMode: true),
           ),
-          Expanded(
-            flex: columnFlex['name']!,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: c2.withValues(alpha: 0.1),
-                  child: const Icon(Icons.person, color: c2, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        profile.name.isEmpty ? 'بدون اسم' : profile.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        profile.entityType,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+        );
+        if (updated == true) widget.onRefresh();
+      },
+      child: Container(
+        color: isSelected ? c2.withValues(alpha: 0.05) : Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10),
+        child: Row(
+          children: [
+            Expanded(
+              flex: columnFlex['checkbox']!,
+              child: Checkbox(
+                value: isSelected,
+                activeColor: c2,
+                onChanged: (val) {
+                  setState(() {
+                    if (val == true) {
+                      selectedIds.add(profile.id);
+                    } else {
+                      selectedIds.remove(profile.id);
+                    }
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              flex: columnFlex['name']!,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: c2.withValues(alpha: 0.1),
+                    child: const Icon(Icons.person, color: c2, size: 20),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: columnFlex['category']!,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: StatusChip(
-                text: profile.subCategory,
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: columnFlex['gov']!,
-            child: Text(
-              profile.governorate,
-              style: const TextStyle(fontSize: 15),
-            ),
-          ),
-
-          Expanded(
-            flex: columnFlex['rating']!,
-            child: Row(
-              children: [
-                const Icon(Icons.star, color: Colors.amber, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  profile.rating.toStringAsFixed(1),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: columnFlex['updated']!,
-            child: Text(
-              profile.updatedAt,
-              style: const TextStyle(fontSize: 15, color: Colors.grey),
-            ),
-          ),
-
-          Expanded(
-            flex: columnFlex['status']!,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: StatusChip(
-                text: profile.status,
-                color: profile.status == 'فعال' ? Colors.green : Colors.orange,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: columnFlex['actions']!,
-            child: Row(
-              children: [
-                _actionIcon(Icons.edit_outlined, Colors.blueGrey, () async {
-                  bool? updated = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileEditScreen(
-                        initialData: profile,
-                        isEditMode: true,
-                      ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile.name.isEmpty ? 'بدون اسم' : profile.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          profile.entityType,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                  if (updated == true) widget.onRefresh();
-                }),
-                _actionIcon(
-                  Icons.delete_outline,
-                  Colors.redAccent,
-                  () => _showSingleDeleteWarning(profile),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              flex: columnFlex['category']!,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: StatusChip(
+                  text: profile.subCategory,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: columnFlex['gov']!,
+              child: Text(
+                profile.governorate,
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+
+            Expanded(
+              flex: columnFlex['rating']!,
+              child: Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    profile.rating.toStringAsFixed(1),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: columnFlex['updated']!,
+              child: Text(
+                profile.updatedAt,
+                style: const TextStyle(fontSize: 15, color: Colors.grey),
+              ),
+            ),
+
+            Expanded(
+              flex: columnFlex['status']!,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: StatusChip(
+                  text: profile.status,
+                  color: profile.status == 'فعال'
+                      ? Colors.green
+                      : Colors.orange,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: columnFlex['actions']!,
+              child: Row(
+                children: [
+                  _actionIcon(Icons.edit_outlined, Colors.blueGrey, () async {
+                    bool? updated = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileEditScreen(
+                          initialData: profile,
+                          isEditMode: true,
+                        ),
+                      ),
+                    );
+                    if (updated == true) widget.onRefresh();
+                  }),
+                  _actionIcon(
+                    Icons.delete_outline,
+                    Colors.redAccent,
+                    () => _showSingleDeleteWarning(profile),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

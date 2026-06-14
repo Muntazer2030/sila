@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:sila/const/colors.dart';
 import 'package:sila/data/database_helper.dart';
+import 'package:sila/ui/screens/login_screen/login_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sila/ui/screens/home_screen/home_screen.dart'; // Adjust path
 
 void main() async{
   // Initialize SQLite for Windows/Desktop
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Cairo', // Assuming you use an Arabic font
       ),
-      home: const HomeScreen(),
+      home: const LoginScreen(),
     );
   }
 }

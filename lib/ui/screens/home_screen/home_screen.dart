@@ -1,5 +1,6 @@
 import 'package:sila/const/colors.dart';
 import 'package:sila/models/app_data.dart';
+import 'package:sila/ui/screens/home_screen/pages/campaigns_page.dart';
 import 'package:sila/ui/screens/home_screen/pages/main_page.dart';
 import 'package:sila/ui/screens/home_screen/pages/sub_page.dart';
 import 'package:sila/ui/screens/settings_screen/settings_screen.dart';
@@ -154,8 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return SubPage(category: appData.categories[7]);
                               case 8:
                                 return SubPage(category: appData.categories[8]);
+
                               case 9:
-                                return SubPage(category: appData.categories[9]);
+                                return const CampaignsPage();
                               case 99:
                                 return const SettingsScreen();
                               default:

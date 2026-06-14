@@ -125,6 +125,7 @@ class AppData {
         {"name": "رعاة محتملين", "icon": Icons.attach_money, "count": 0},
       ],
     },
+    {"name": "الحملات", "icon": Icons.event, "count": 0},
   ];
 }
 

@@ -46,7 +46,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backupDir = selectedDirectory;
       });
 
-      // Trigger an immediate initial backup to the new location
       await DatabaseHelper.instance.backupDatabase();
 
       if (mounted) {
@@ -60,7 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // --- 2. IMPORT DATABASE (.db file) ---
+  // --- 2. IMPORT DATABASE ---
   Future<void> _importDatabase() async {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -77,9 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                "تم استيراد قاعدة البيانات بنجاح! يرجى إعادة تشغيل التطبيق.",
-              ),
+              content: Text("تم استيراد قاعدة البيانات بنجاح!"),
               backgroundColor: Colors.green,
             ),
           );
@@ -95,67 +92,239 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // --- 3. WIPE DATABASE ---
+  // --- 3. CHANGE PASSWORD ---
+  Future<void> _changePasswordDialog() async {
+    final TextEditingController oldPassCtrl = TextEditingController();
+    final TextEditingController newPassCtrl = TextEditingController();
+    String localError = '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.lock_reset, color: c2),
+                    SizedBox(width: 10),
+                    Text(
+                      "تغيير كلمة المرور",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (localError.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                          localError,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    TextField(
+                      controller: oldPassCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "كلمة المرور الحالية",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock_outline),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: newPassCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "كلمة المرور الجديدة",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock),
+                      ),
+                    ),
+                  ],
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text(
+                      "إلغاء",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c2,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      final savedPass =
+                          prefs.getString('app_password') ?? '123456';
+
+                      if (oldPassCtrl.text == savedPass) {
+                        if (newPassCtrl.text.length >= 4) {
+                          await prefs.setString(
+                            'app_password',
+                            newPassCtrl.text,
+                          );
+                          if (mounted) Navigator.pop(ctx);
+                          if (mounted) {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text("تم تغيير كلمة المرور بنجاح!"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } else {
+                          setDialogState(
+                            () => localError =
+                                "كلمة المرور الجديدة يجب أن لا تقل عن 4 رموز",
+                          );
+                        }
+                      } else {
+                        setDialogState(
+                          () => localError = "كلمة المرور الحالية غير صحيحة!",
+                        );
+                      }
+                    },
+                    child: const Text(
+                      "حفظ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // --- 4. WIPE DATABASE (PASSWORD PROTECTED) ---
   Future<void> _wipeDatabase() async {
+    final TextEditingController passCtrl = TextEditingController();
+    String localError = '';
+
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
-                SizedBox(width: 10),
-                Text(
-                  "حذف جميع البيانات",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            content: const Text(
-              "هل أنت متأكد من حذف جميع البيانات؟\nسيتم مسح قاعدة البيانات بالكامل ولا يمكن التراجع!",
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  "إلغاء",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                ),
-                onPressed: () async {
-                  Navigator.pop(ctx);
-                  await DatabaseHelper.instance.wipeDatabase();
-
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("تم تهيئة قاعدة البيانات بنجاح!"),
-                        backgroundColor: Colors.redAccent,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                    SizedBox(width: 10),
+                    Text(
+                      "تحذير: حذف جميع البيانات",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
                       ),
-                    );
-                  }
-                },
-                child: const Text(
-                  "نعم، احذف الكل",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "سيتم مسح قاعدة البيانات بالكامل ولا يمكن التراجع!\nيرجى إدخال كلمة المرور لتأكيد العملية.",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 20),
+                    if (localError.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                          localError,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    TextField(
+                      controller: passCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "كلمة المرور للتأكيد",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(
+                          Icons.password,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text(
+                      "إلغاء",
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      final savedPass =
+                          prefs.getString('app_password') ?? '123456';
+
+                      if (passCtrl.text == savedPass) {
+                        Navigator.pop(ctx);
+                        await DatabaseHelper.instance.wipeDatabase();
+                        if (mounted) {
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            const SnackBar(
+                              content: Text("تم تهيئة قاعدة البيانات بنجاح!"),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        }
+                      } else {
+                        setDialogState(
+                          () => localError =
+                              "كلمة المرور غير صحيحة. لا يمكن الحذف.",
+                        );
+                      }
+                    },
+                    child: const Text(
+                      "نعم، احذف الكل",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -180,7 +349,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 30),
-        
+
             _buildSettingsCard(
               title: "مسار النسخ الاحتياطي التلقائي",
               description:
@@ -210,9 +379,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-        
+
             const SizedBox(height: 20),
-        
+
+            _buildSettingsCard(
+              title: "الحماية وتسجيل الدخول",
+              description:
+                  "تغيير كلمة المرور الخاصة بالدخول إلى التطبيق والعمليات الحساسة.",
+              icon: Icons.security,
+              color: Colors.blueGrey,
+              child: OutlinedButton.icon(
+                onPressed: _changePasswordDialog,
+                icon: const Icon(Icons.password, size: 18),
+                label: const Text("تغيير كلمة المرور"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blueGrey,
+                  side: const BorderSide(color: Colors.blueGrey),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
             _buildSettingsCard(
               title: "استيراد قاعدة بيانات",
               description:
@@ -229,12 +417,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-        
+
             const SizedBox(height: 20),
-        
+
             _buildSettingsCard(
               title: "تهيئة النظام",
-              description: "مسح جميع البيانات والعودة لضبط المصنع.",
+              description:
+                  "مسح جميع البيانات والعودة لضبط المصنع (يتطلب كلمة المرور).",
               icon: Icons.delete_forever,
               color: Colors.redAccent,
               child: OutlinedButton.icon(
