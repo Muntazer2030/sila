@@ -535,10 +535,12 @@ class _ContactsTableViewState extends State<ContactsTableView> {
       ...widget.profiles.map((e) => e.governorate).toSet(),
     ];
 
-    if (!availableCategories.contains(selectedSubCategory))
+    if (!availableCategories.contains(selectedSubCategory)) {
       selectedSubCategory = "جميع الفئات";
-    if (!availableGovs.contains(selectedGovernorate))
+    }
+    if (!availableGovs.contains(selectedGovernorate)) {
       selectedGovernorate = "جميع المحافظات";
+    }
 
     return Padding(
       padding: const EdgeInsets.all(15.0),
@@ -952,13 +954,14 @@ class _ContactsTableViewState extends State<ContactsTableView> {
                   await DatabaseHelper.instance.deleteProfile(profile.id);
                   setState(() => selectedIds.remove(profile.id));
                   widget.onRefresh();
-                  if (mounted)
+                  if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("تم الحذف بنجاح"),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
+                  }
                 },
                 child: const Text(
                   "نعم، احذف",

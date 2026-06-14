@@ -2,6 +2,7 @@ import 'package:sila/const/colors.dart';
 import 'package:sila/models/app_data.dart';
 import 'package:sila/ui/screens/home_screen/pages/main_page.dart';
 import 'package:sila/ui/screens/home_screen/pages/sub_page.dart';
+import 'package:sila/ui/screens/settings_screen/settings_screen.dart';
 import 'package:sila/ui/widgets/nav_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -97,6 +98,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                 },
                               ),
                             ),
+                            const SizedBox(height: 20), // Spacer
+                            // Add a Divider line to separate settings
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: Divider(color: Colors.grey.shade300),
+                            ),
+
+                            // Settings Button
+                            NavTile(
+                              icon: Icons.settings,
+                              title: "الإعدادات",
+                              isActive:
+                                  selectedIndex ==
+                                  99, // Unique index for settings
+                              isCompact: !isWideScreen,
+                              onTap: () {
+                                setState(() {
+                                  selectedIndex = 99;
+                                });
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -132,6 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return SubPage(category: appData.categories[8]);
                               case 9:
                                 return SubPage(category: appData.categories[9]);
+                              case 99:
+                                return const SettingsScreen();
                               default:
                                 return Container(
                                   width: isWideScreen

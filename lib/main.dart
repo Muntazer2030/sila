@@ -1,14 +1,25 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:sila/const/colors.dart';
+import 'package:sila/data/database_helper.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sila/ui/screens/home_screen/home_screen.dart'; // Adjust path
 
-void main() {
+void main() async{
   // Initialize SQLite for Windows/Desktop
+  WidgetsFlutterBinding.ensureInitialized();
+  
+ 
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
+  
+ 
+  await DatabaseHelper.instance.database;
 
+ 
+  await DatabaseHelper.instance.backupDatabase();
+
+  // 5. Run the App
   runApp(const MyApp());
 }
 

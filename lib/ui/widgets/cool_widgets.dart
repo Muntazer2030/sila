@@ -95,11 +95,11 @@ class _EditableStarRatingState extends State<EditableStarRating> {
               widget.onChanged(currentRating);
             },
             child: Padding(
-              padding: const EdgeInsets.only(left: 4.0), // مسافة صغيرة بين النجوم
+              padding: const EdgeInsets.only(left: 4.0),
               child: Icon(
                 index < currentRating ? Icons.star : Icons.star_border,
                 color: Colors.amber,
-                size: 28, // حجم النجمة مناسب للماوس/اللمس
+                size: 28,
               ),
             ),
           );

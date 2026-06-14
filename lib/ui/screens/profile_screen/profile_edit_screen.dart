@@ -62,7 +62,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         .map((e) => e['name'] as String)
         .toList();
 
-    // التأكد من أن الفئة الرئيسية القادمة من الجدول موجودة بالفعل
+  
     if (!mainCategories.contains(formData.mainCategory)) {
       formData.mainCategory = mainCategories.first;
     }
@@ -353,6 +353,26 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   formData.region,
                   (val) => formData.region = val,
                 ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDropdown("الجنس", formData.status, [
+                  "ذكر",
+                  "انثى",
+                  "غير محدد",
+                 
+                ], (val) => formData.status = val!),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: _buildTextField(
+                  "مصدر المعلومات",
+                  formData.infoSource,
+                  (val) => formData.infoSource = val,
+                )
               ),
             ],
           ),
@@ -658,6 +678,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             formData.rating,
             (val) => formData.rating = val,
           ),
+          SizedBox(height: 15),
         ],
       ),
     );

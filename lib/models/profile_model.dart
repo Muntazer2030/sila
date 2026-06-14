@@ -42,6 +42,9 @@ class ProfileModel {
   String createdAt;
   String updatedAt;
 
+  String infoSource;
+  String gender;
+
   ProfileModel({
     required this.id,
     required this.name,
@@ -78,6 +81,8 @@ class ProfileModel {
     required this.rating,
     required this.createdAt,
     required this.updatedAt,
+    required this.infoSource,
+    required this.gender,
   });
 
   // Convert ProfileModel to a Map for SQLite
@@ -117,6 +122,9 @@ class ProfileModel {
       'rating': rating,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'cooperationCount': cooperationCount,
+      'infoSource': infoSource,
+      'gender': gender
     };
   }
 
@@ -158,6 +166,8 @@ class ProfileModel {
       rating: map['rating'] != null ? (map['rating'] as num).toDouble() : 4.0,
       createdAt: map['createdAt'] ?? "",
       updatedAt: map['updatedAt'] ?? "",
+      infoSource: map['infoSource'] ?? "",
+      gender: map['gender'] ?? "",
     );
   }
 
@@ -199,6 +209,8 @@ class ProfileModel {
       rating: 4.0,
       createdAt: today,
       updatedAt: today,
+      infoSource: "",
+      gender: "",
     );
   }
 }
