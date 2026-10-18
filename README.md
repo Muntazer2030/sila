@@ -11,6 +11,36 @@ The interface is **Arabic (right-to-left)** and everything is stored **locally o
 
 ---
 
+## Screenshots
+
+*All screenshots use made-up sample data.*
+
+**Dashboard**: totals per category, a distribution chart and quick "add" shortcuts.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+**Contacts list** for a category: sub-category counters, search, filters, Excel import/export and bulk actions.
+
+![Contacts list](docs/screenshots/contacts-list.png)
+
+**Contact profile**: full record with contact details, social accounts, audience data and relationship rating.
+
+![Contact profile](docs/screenshots/contact-edit.png)
+
+**Campaigns and events**, and the campaign page where you search your contacts and invite them.
+
+![Campaigns](docs/screenshots/campaigns.png)
+
+![Campaign details](docs/screenshots/campaign-details.png)
+
+**Settings** (backup folder, password, database import, reset) and the **login** screen.
+
+![Settings](docs/screenshots/settings.png)
+
+![Login](docs/screenshots/login.png)
+
+---
+
 ## Features
 
 - **Contact profiles** with a rich record for each person or entity: name, type, main/sub category, governorate and
